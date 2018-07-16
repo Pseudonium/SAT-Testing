@@ -18,6 +18,13 @@ def logic_parser(dimacs_file):
                 total_clause_num = line[3]
     return master_array
 
+class LogicStatement(list):
+    pass
+
+
+class LogicLiteral():
+    pass
+
 
 def logic_rules(logic_array: list) -> list:
     """
