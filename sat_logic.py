@@ -1,6 +1,14 @@
 import pdb
 
 
+class LogicStatement(list):
+    pass
+
+
+class LogicLiteral():
+    pass
+
+
 def logic_rules(logic_array: list) -> list:
     """
     Simplify logic array based on AND and OR rules.
