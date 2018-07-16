@@ -1,6 +1,24 @@
 import pdb
 
 
+def logic_parser(dimacs_file):
+    """Take CNF instance and parse it into a logic statement."""
+    with open(dimacs_file) as f:
+        cnf_reached = False
+        master_array = ["AND"]
+        for line in f:
+            if cnf_reached:
+                line = line.split(" ")
+                line.insert(0, "OR")
+                master_array.append(line)
+            elif line[0] == "p":
+                cnf_reached = True
+                line = line.split(" ")
+                total_var_num = line[2]
+                total_clause_num = line[3]
+    return master_array
+
+
 def logic_rules(logic_array: list) -> list:
     """
     Simplify logic array based on AND and OR rules.
