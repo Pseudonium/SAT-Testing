@@ -35,8 +35,11 @@ class LogicStatement():
                     if line[0] == "%":
                         break
                     line = line.split(" ")
-                    line.insert(0, "OR")
+                    if '' in line:
+                        line.remove('')
                     line.pop()
+                    line = [int(element) for element in line[:]]
+                    line.insert(0, "OR")
                     self.contents.append(LogicStatement(logic_array=line))
                 elif line[0] == "p":
                     cnf_reached = True
@@ -118,6 +121,16 @@ class LogicStatement():
             for element in self.contents[:]]
         return self
 
+    def negator(self):
+        if self.operator == "AND":
+            self.operator = "OR"
+        else:
+            self.operator = "AND"
+        self.contents = [
+            element.negator() if isinstance(element, LogicStatement)
+            else element*-1 for element in self.contents[:]]
+        return self
+
 
 """
 x = LogicStatement(logic_array=[
@@ -127,3 +140,4 @@ x = LogicStatement(logic_array=[
 # pdb.set_trace()
 y = LogicStatement(dimacs_file="../rSAT-instances/uf20-01.cnf")
 print(y.display())
+print(y.negator().display())

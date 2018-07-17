@@ -1,5 +1,4 @@
 Current to-do list:
-Implement Negation method.
 
 Changes in implementation:
 
