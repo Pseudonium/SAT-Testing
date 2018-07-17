@@ -1,14 +1,15 @@
 import pdb
+import os
 
 
 class LogicStatement():
-    def __init__(self, logic_list=[], dimacs_file=None):
+    def __init__(self, logic_array=[], dimacs_file=None):
         """
         Creates a new LogicStatement object.
 
         Parameters:
 
-            logic_list ---- Take in a logic array and convert it into a
+            logic_array ---- Take in a logic array and convert it into a
             LogicStatement object.
 
             dimacs_file --- Allows LogicStatement objects to be directly created
@@ -16,13 +17,14 @@ class LogicStatement():
         """
         if dimacs_file:
             self.operator = "AND"
+            self.contents = []
             self.logic_parser(dimacs_file)
-        elif logic_list:
-            self.operator = logic_list[0]
+        elif logic_array:
+            self.operator = logic_array[0]
             self.contents = [
-                LogicStatement(logic_list=element)
+                LogicStatement(logic_array=element)
                 if isinstance(element, list)
-                else element for element in logic_list[1:]]
+                else element for element in logic_array[1:]]
 
     def logic_parser(self, dimacs_file):
         """Take CNF instance and parse it into a logic statement."""
@@ -30,8 +32,11 @@ class LogicStatement():
             cnf_reached = False
             for line in f:
                 if cnf_reached:
+                    if line[0] == "%":
+                        break
                     line = line.split(" ")
                     line.insert(0, "OR")
+                    line.pop()
                     self.contents.append(LogicStatement(logic_array=line))
                 elif line[0] == "p":
                     cnf_reached = True
@@ -114,6 +119,6 @@ class LogicStatement():
         return self
 
 
-x = LogicStatement(logic_list=[
+x = LogicStatement(logic_array=[
     "AND", ["OR", ["AND", 1, 7], ["AND", 2, -7], 3],
     ["OR", ["AND", 4, 7], ["AND", 5, -7], 6]])
