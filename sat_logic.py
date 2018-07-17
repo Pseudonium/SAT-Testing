@@ -3,7 +3,7 @@ import os
 
 
 class LogicStatement():
-    def __init__(self, logic_array=[], dimacs_file=None):
+    def __init__(self, logic_array: list =[], dimacs_file: "file_path" =None):
         """
         Creates a new LogicStatement object.
 
@@ -12,8 +12,8 @@ class LogicStatement():
             logic_array ---- Take in a logic array and convert it into a
             LogicStatement object.
 
-            dimacs_file --- Allows LogicStatement objects to be directly created
-            from a file in conventional dimacs format.
+            dimacs_file --- Allows LogicStatement objects to be directly
+            created from a file in conventional dimacs format.
         """
         if dimacs_file:
             self.operator = "AND"
@@ -23,8 +23,8 @@ class LogicStatement():
             self.operator = logic_array[0]
             self.contents = [
                 LogicStatement(logic_array=element)
-                if isinstance(element, list)
-                else element for element in logic_array[1:]]
+                if isinstance(element, list) else element
+                for element in logic_array[1:]]
 
     def logic_parser(self, dimacs_file):
         """Take CNF instance and parse it into a logic statement."""
@@ -119,6 +119,11 @@ class LogicStatement():
         return self
 
 
+"""
 x = LogicStatement(logic_array=[
     "AND", ["OR", ["AND", 1, 7], ["AND", 2, -7], 3],
     ["OR", ["AND", 4, 7], ["AND", 5, -7], 6]])
+"""
+# pdb.set_trace()
+y = LogicStatement(dimacs_file="../rSAT-instances/uf20-01.cnf")
+print(y.display())
