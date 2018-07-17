@@ -57,23 +57,23 @@ class LogicStatement():
 
     @staticmethod
     def logic_conversion(element):
-        """Convert the element into the appropriate form for logic_rules.
+        """Convert the element into the appropriate form for bool_rules.
 
-        Apply logic_rules recursively if the element is itself a logic array.
+        Apply bool_rules recursively if the element is itself a logic array.
 
         If the element is a boolean, it is not added, as either:
             1: The operator is "OR" and the element is 'False'
             2: The operator is "AND" and the element is 'True'
-        The other two combinations are already covered in logic_rules.
+        The other two combinations are already covered in bool_rules.
         """
         if isinstance(element, LogicStatement):
-            return element.logic_rules()
+            return element.bool_rules()
         elif not isinstance(element, bool):
             return element
         else:
             return False
 
-    def logic_rules(self):
+    def bool_rules(self):
         """
         Simplify logic array based on AND and OR rules.
 
