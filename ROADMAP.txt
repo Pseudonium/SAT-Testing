@@ -1,7 +1,9 @@
 Current to-do list:
+Make 'logic statement' its own class, with 'logic unit' for variables,
+possibly.
 
 Changes in implementation:
 
+
 Planned features:
 Implement exponential all-options checker.
-Implement len(1)-simplifier.
