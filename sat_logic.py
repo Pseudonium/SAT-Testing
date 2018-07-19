@@ -21,17 +21,19 @@ class LogicStatement():
             self.parent = parent
         if dimacs_file:
             self.operator = "AND"
-            self.contents = []
+            self.contents = frozenset()
             self.dimacs_parser(dimacs_file)
         elif logic_array:
             self.operator = logic_array[0]
-            self.contents = [
+            self.contents = frozenset([
                 LogicStatement(logic_array=element, parent=self)
                 if isinstance(element, list) else element
-                for element in logic_array[1:]]
+                for element in logic_array[1:]])
 
     def dimacs_parser(self, dimacs_file):
-        """Take CNF instance and parse it into a logic statement."""
+        """
+        Take CNF instance and parse it into a logic statement.
+        """
         with open(dimacs_file) as f:
             cnf_reached = False
             for line in f:
@@ -44,8 +46,8 @@ class LogicStatement():
                     line.pop()
                     line = [int(element) for element in line[:]]
                     line.insert(0, "OR")
-                    self.contents.append(LogicStatement(
-                        logic_array=line, parent=self))
+                    self.contents | {LogicStatement(
+                        logic_array=line, parent=self)}
                 elif line[0] == "p":
                     cnf_reached = True
                     line = line.split(" ")
@@ -54,18 +56,21 @@ class LogicStatement():
         return self
 
     def display(self) -> list:
-        """Returns an array of the statement, for printing.
+        """
+        Returns an array of the statement, for printing.
 
         Format of the array:
         ["Operator", [LogicStatement], ..., variable, [LogicStatement], ...]
         """
         return [self.operator] + [
             element.display() if isinstance(element, LogicStatement)
-            else element for element in self.contents]
+            else list(element) if isinstance(element, frozenset) else element
+            for element in self.contents]
 
     @staticmethod
     def bool_conversion(element):
-        """Convert the element into the appropriate form for simplify_bool.
+        """
+        Convert the element into the appropriate form for simplify_bool.
 
         Apply simplify_bool recursively if the element is itself a logic array.
 
@@ -94,24 +99,26 @@ class LogicStatement():
         """
         if self.operator == "OR" and any(
                 element is True for element in self.contents):
-            self.contents = [True]
+            self.contents = frozenset({True})
             # self.parent.simplify_bool()
             return self
         elif self.operator == "AND" and any(
                 element is False for element in self.contents):
-            self.contents = [False]
+            self.contents = frozenset({False})
             # self.parent.simplify_bool()
             return self
         else:
-            self.contents = [
+            self.contents = frozenset([
                 LogicStatement.bool_conversion(element)
-                for element in self.contents[:]
-                if LogicStatement.bool_conversion(element)]
+                for element in self.contents.copy()
+                if LogicStatement.bool_conversion(element)])
             return self
 
     @staticmethod
     def set_variable_conversion(element, var_num: int, value: bool):
-        """Convert element into the appropriate form for set_variable."""
+        """
+        Convert element into the appropriate form for set_variable.
+        """
         if isinstance(element, LogicStatement):
             return element.set_variable(var_num, value)
         elif element == var_num:
@@ -122,69 +129,67 @@ class LogicStatement():
             return element
 
     def set_variable(self, var_num: int, value: bool):
-        """Set a truth value to a certain variable in the logic array."""
-        self.contents = [
+        """
+        Set a truth value to a certain variable in the logic array.
+        """
+        self.contents = frozenset([
             LogicStatement.set_variable_conversion(element, var_num, value)
-            for element in self.contents[:]]
+            for element in self.contents.copy()])
         return self
 
     def simplify_singleton(self):
         """
-        Add contents of statements with one or none sub-statements to parent.
+        Add contents of statements with one or none sub-statements to self.
         """
         for statement in self.contents:
             if isinstance(statement, LogicStatement):
                 statement.simplify_singleton()
                 if len(statement.contents) < 2:
                     for element in statement.contents:
-                        self.contents.append(element)
-                    self.contents.remove(statement)
+                        self.contents = self.contents | {element}
+                    self.contents = self.contents - {statement}
                     del statement
         return self
 
     def simplify_operator(self):
+        """
+        Add contents of statements with the same operator as self.
+        """
         for statement in self.contents:
             if isinstance(statement, LogicStatement):
                 statement.simplify_operator()
                 if statement.operator == self.operator:
                     for element in statement.contents:
-                        self.contents.append(element)
-                    self.contents.remove(statement)
+                        self.contents = self.contents | element
+                    self.contents = self.contents - statement
                     del statement
         return self
 
-    def remove_duplicates(self, master=False):
-        for element in self.display():
-            if isinstance(element, LogicStatement):
-                element.remove_duplicates()
-        new_contents = []
-        for element in self.contents:
-            if element not in new_contents:
-                new_contents.append(element)
-        self.contents = new_contents
-        return self
-
     def negate(self):
+        """
+        Negate the object - normal logic rules are applied.
+        """
         if self.operator == "AND":
             self.operator = "OR"
         else:
             self.operator = "AND"
-        self.contents = [
+        self.contents = frozenset([
             element.negate() if isinstance(element, LogicStatement)
-            else element*-1 for element in self.contents[:]]
+            else element*-1 for element in self.contents.copy()])
         return self
 
     def simplifier(self):
+        """
+        Keep applying simplifiers until the object no longer changes
+        """
         old_display = self.display()[:]
-        self.simplify_bool().simplify_operator()
-        self.simplify_singleton().remove_duplicates()
+        self.simplify_bool().simplify_operator().simplify_singleton()
         if old_display == self.display():
             return self
         else:
             return self.simplifier()
 
 
-"""
 x = LogicStatement(logic_array=[
     "AND", ["OR", ["AND", 1, 7], ["AND", 2, -7], 3],
     ["OR", ["AND", 4, 7], ["AND", 5, -7], 6]])
@@ -193,7 +198,7 @@ print(x.set_variable(7, True).display())
 print(x.simplifier().display())
 
 # pdb.set_trace()
-#y = LogicStatement(dimacs_file="../rSAT-instances/uf20-01.cnf")
+# y = LogicStatement(dimacs_file="../rSAT-instances/uf20-01.cnf")
 # print(y.display())
 # print(y.negate().display())
 
@@ -205,4 +210,5 @@ test = LogicStatement(logic_array=[
 # print(test.simplify_singleton().remove_duplicates().display())
 test2 = [1, 2, [3, 3, 5], [6, 7, [8, 8, 9]]]
 # pdb.set_trace()
-"""
+
+# this should not change master

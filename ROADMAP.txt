@@ -1,9 +1,7 @@
 Current to-do list:
-Make 'logic statement' its own class, with 'logic unit' for variables,
-possibly.
 
 Changes in implementation:
-
+Change the logic_arrays to logic_sets
 
 Planned features:
 Implement exponential all-options checker.
