@@ -1,5 +1,5 @@
-import pdb
-import os
+import itertools
+import copy
 
 
 class LogicStatement():
@@ -38,10 +38,6 @@ class LogicStatement():
             element.display() if isinstance(element, LogicStatement)
             else list(element) if isinstance(element, frozenset) else element
             for element in self.contents])
-        return [self.operator] + [
-            element.display() if isinstance(element, LogicStatement)
-            else list(element) if isinstance(element, frozenset) else element
-            for element in self.contents]
 
     def __str__(self):
         """
@@ -92,7 +88,7 @@ class LogicStatement():
         """
         Convert the element into the appropriate form for simplify_bool.
 
-        Apply simplify_bool recursively if the element is itself a logic array.
+        Apply simplify_bool recursively if the element is a LogicStatement.
 
         If the element is a boolean, it is not added, as either:
             1: The operator is "OR" and the element is 'False'
@@ -115,7 +111,7 @@ class LogicStatement():
             1: Operator is "OR", and 'True' is in the array -> [True].
             2: Operator is "AND", and 'False' is in the array -> [False].
 
-        Otherwise, loop through list, and apply bool_conversion on each element.
+        Otherwise loop through and apply bool_conversion on each element.
         """
         if self.operator == "OR" and any(
                 element is True for element in self.contents):
@@ -125,10 +121,12 @@ class LogicStatement():
                 element is False for element in self.contents):
             self.contents = frozenset({False})
             return self
+        elif self.contents == (frozenset({True}) or frozenset({False})):
+            return self
         else:
             self.contents = frozenset([
                 LogicStatement.bool_conversion(element)
-                for element in self.contents.copy()
+                for element in copy.deepcopy(self.contents)
                 if LogicStatement.bool_conversion(element)])
             return self
 
@@ -152,7 +150,7 @@ class LogicStatement():
         """
         self.contents = frozenset([
             LogicStatement.set_variable_conversion(element, var_num, value)
-            for element in self.contents.copy()])
+            for element in copy.deepcopy(self.contents)])
         return self
 
     def simplify_singleton(self):
@@ -164,8 +162,8 @@ class LogicStatement():
                 statement.simplify_singleton()
                 if len(statement.contents) < 2:
                     for element in statement.contents:
-                        self.contents = self.contents | {element}
-                    self.contents = self.contents - {statement}
+                        self.contents |= {element}
+                    self.contents -= {statement}
                     del statement
         return self
 
@@ -193,7 +191,7 @@ class LogicStatement():
             self.operator = "AND"
         self.contents = frozenset([
             element.negate() if isinstance(element, LogicStatement)
-            else element*-1 for element in self.contents.copy()])
+            else element*-1 for element in copy.deepcopy(self.contents)])
         return self
 
     def simplify(self):
@@ -207,25 +205,43 @@ class LogicStatement():
         else:
             return self.simplify()
 
+    def every_true(self, check_var, total_other_variables):
+        check_array = itertools.product(
+            [True, False],
+            repeat=total_other_variables)
+        setter = list(range(1, total_other_variables + 1))
+        good_combos = []
+        for combo in check_array:
+            self_copy_1 = copy.deepcopy(self)
+            for var, value in zip(setter, combo):
+                self_copy_1.set_variable(var, value)
+            self_copy_1.simplify()
+            self_copy_2 = copy.deepcopy(self_copy_1)
+            self_copy_3 = copy.deepcopy(self_copy_1)
+            if (
+                    self_copy_1.contents == frozenset({True})
+                    or (
+                        self_copy_2.set_variable(
+                            check_var, True).simplify(
+                        ).contents == frozenset({True})
+                        and self_copy_3.set_variable(
+                            check_var, False).simplify(
+                        ).contents == frozenset({True}))):
+                good_combos.append(combo)
+            del self_copy_1
+            del self_copy_2
+            del self_copy_3
+        final_set = frozenset()
+        for combo in good_combos:
+            inner_set = frozenset(
+                {index + 1 for index in range(len(combo)) if combo[index]})
+            final_set |= {inner_set}
+        for set in final_set:
+            for other in final_set:
+                if set < other:
+                    final_set -= frozenset({other})
+        return final_set
+
 
 if __name__ == "__main__":
-
-    x = LogicStatement(logic_array=[
-        "AND", ["OR", ["AND", 1, 7], ["AND", 2, -7], 3],
-        ["OR", ["AND", 4, 7], ["AND", 5, -7], 6]])
-
-    # print(x.display())
-    x.set_variable(7, True)
-    # print(x.simplify_bool())
-    y = LogicStatement(dimacs_file="../rSAT-instances/uf20-01.cnf")
-
-    test = LogicStatement(logic_array=[
-        "AND", ["OR", 1], ["OR", 2, 3], ["OR", ["AND", 1]]])
-
-    print(test.simplify_singleton())
-
-    test2 = [1, 2, [3, 3, 5], [6, 7, [8, 8, 9]]]
-    test3 = LogicStatement(logic_array=[
-        "AND", ["AND", 1, 2, ["OR", 3, 4]], ["OR", 5, 6, ["OR", 7, 8]]
-    ])
-    print(test3.simplify_operator())
+    pass

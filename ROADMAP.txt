@@ -1,7 +1,5 @@
 Current to-do list:
 
 Changes in implementation:
-Change the logic_arrays to logic_sets
 
 Planned features:
-Implement exponential all-options checker.

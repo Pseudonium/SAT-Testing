@@ -87,6 +87,16 @@ class TestCalc(unittest.TestCase):
             convert_to_set(['AND', 1, 2, ['OR', 3, 4], ['OR', 8, 5, 6, 7]])
         )
 
+    def test_every_true(self):
+        x = sat_logic.LogicStatement(logic_array=[
+            "AND", ["OR", ["AND", 1, 7], ["AND", 2, -7], 3],
+            ["OR", ["AND", 4, 7], ["AND", 5, -7], 6]])
+        self.assertEqual(
+            x.every_true(7, 6),
+            frozenset(
+                {frozenset({3, 6}), frozenset({1, 2, 6}),
+                 frozenset({1, 2, 4, 5}), frozenset({3, 4, 5})}))
+
 
 if __name__ == "__main__":
     unittest.main()
