@@ -30,6 +30,40 @@ class LogicStatement():
                 if isinstance(element, list) else element
                 for element in logic_array[1:]])
 
+    def __repr__(self):
+        """
+        Returns a constructor of the object
+        """
+        return "LogicStatement(logic_array={})".format([self.operator] + [
+            element.display() if isinstance(element, LogicStatement)
+            else list(element) if isinstance(element, frozenset) else element
+            for element in self.contents])
+        return [self.operator] + [
+            element.display() if isinstance(element, LogicStatement)
+            else list(element) if isinstance(element, frozenset) else element
+            for element in self.contents]
+
+    def __str__(self):
+        """
+        Returns an array of the statement, for printing.
+
+        Format of the array:
+        ["Operator", [LogicStatement], ..., variable, [LogicStatement], ...]
+        """
+        return str(self.display())
+
+    def display(self) -> list:
+        """
+        Returns an array of the statement, for printing.
+
+        Format of the array:
+        ["Operator", [LogicStatement], ..., variable, [LogicStatement], ...]
+        """
+        return [self.operator] + [
+            element.display() if isinstance(element, LogicStatement)
+            else list(element) if isinstance(element, frozenset) else element
+            for element in self.contents]
+
     def dimacs_parser(self, dimacs_file):
         """
         Take CNF instance and parse it into a logic statement.
@@ -54,18 +88,6 @@ class LogicStatement():
                     self.total_var_num = line[2]
                     self.total_clause_num = line[3]
         return self
-
-    def display(self) -> list:
-        """
-        Returns an array of the statement, for printing.
-
-        Format of the array:
-        ["Operator", [LogicStatement], ..., variable, [LogicStatement], ...]
-        """
-        return [self.operator] + [
-            element.display() if isinstance(element, LogicStatement)
-            else list(element) if isinstance(element, frozenset) else element
-            for element in self.contents]
 
     @staticmethod
     def bool_conversion(element):
@@ -178,37 +200,25 @@ class LogicStatement():
             else element*-1 for element in self.contents.copy()])
         return self
 
-    def simplifier(self):
+    def simplify(self):
         """
-        Keep applying simplifiers until the object no longer changes
+        Keep applying simplify methods until the object no longer changes.
         """
         old_display = self.display()[:]
         self.simplify_bool().simplify_operator().simplify_singleton()
         if old_display == self.display():
             return self
         else:
-            return self.simplifier()
+            return self.simplify()
 
 
 x = LogicStatement(logic_array=[
     "AND", ["OR", ["AND", 1, 7], ["AND", 2, -7], 3],
     ["OR", ["AND", 4, 7], ["AND", 5, -7], 6]])
 
-print(x.set_variable(7, True).display())
-print(x.simplifier().display())
-
-# pdb.set_trace()
-# y = LogicStatement(dimacs_file="../rSAT-instances/uf20-01.cnf")
-# print(y.display())
-# print(y.negate().display())
+y = LogicStatement(dimacs_file="../rSAT-instances/uf20-01.cnf")
 
 test = LogicStatement(logic_array=[
     "AND", ["OR", 1], ["OR", 2, 3], ["OR", ["AND", 1]]])
 
-# print(test.display())
-# pdb.set_trace()
-# print(test.simplify_singleton().remove_duplicates().display())
 test2 = [1, 2, [3, 3, 5], [6, 7, [8, 8, 9]]]
-# pdb.set_trace()
-
-# this should not change master
