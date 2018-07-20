@@ -32,7 +32,7 @@ class LogicStatement():
 
     def __repr__(self):
         """
-        Returns a constructor of the object
+        Returns a constructor of the object, as a string.
         """
         return "LogicStatement(logic_array={})".format([self.operator] + [
             element.display() if isinstance(element, LogicStatement)
@@ -54,7 +54,7 @@ class LogicStatement():
 
     def display(self) -> list:
         """
-        Returns an array of the statement, for printing.
+        Returns an array of the statement.
 
         Format of the array:
         ["Operator", [LogicStatement], ..., variable, [LogicStatement], ...]
@@ -122,12 +122,10 @@ class LogicStatement():
         if self.operator == "OR" and any(
                 element is True for element in self.contents):
             self.contents = frozenset({True})
-            # self.parent.simplify_bool()
             return self
         elif self.operator == "AND" and any(
                 element is False for element in self.contents):
             self.contents = frozenset({False})
-            # self.parent.simplify_bool()
             return self
         else:
             self.contents = frozenset([
