@@ -80,13 +80,11 @@ class LogicStatement():
                     line.pop()
                     line = [int(element) for element in line[:]]
                     line.insert(0, "OR")
-                    self.contents | {LogicStatement(
+                    self.contents |= {LogicStatement(
                         logic_array=line, parent=self)}
                 elif line[0] == "p":
                     cnf_reached = True
                     line = line.split(" ")
-                    self.total_var_num = line[2]
-                    self.total_clause_num = line[3]
         return self
 
     @staticmethod
@@ -180,8 +178,8 @@ class LogicStatement():
                 statement.simplify_operator()
                 if statement.operator == self.operator:
                     for element in statement.contents:
-                        self.contents = self.contents | element
-                    self.contents = self.contents - statement
+                        self.contents |= {element}
+                    self.contents -= {statement}
                     del statement
         return self
 
@@ -210,13 +208,24 @@ class LogicStatement():
             return self.simplify()
 
 
-x = LogicStatement(logic_array=[
-    "AND", ["OR", ["AND", 1, 7], ["AND", 2, -7], 3],
-    ["OR", ["AND", 4, 7], ["AND", 5, -7], 6]])
+if __name__ == "__main__":
 
-y = LogicStatement(dimacs_file="../rSAT-instances/uf20-01.cnf")
+    x = LogicStatement(logic_array=[
+        "AND", ["OR", ["AND", 1, 7], ["AND", 2, -7], 3],
+        ["OR", ["AND", 4, 7], ["AND", 5, -7], 6]])
 
-test = LogicStatement(logic_array=[
-    "AND", ["OR", 1], ["OR", 2, 3], ["OR", ["AND", 1]]])
+    # print(x.display())
+    x.set_variable(7, True)
+    # print(x.simplify_bool())
+    y = LogicStatement(dimacs_file="../rSAT-instances/uf20-01.cnf")
 
-test2 = [1, 2, [3, 3, 5], [6, 7, [8, 8, 9]]]
+    test = LogicStatement(logic_array=[
+        "AND", ["OR", 1], ["OR", 2, 3], ["OR", ["AND", 1]]])
+
+    print(test.simplify_singleton())
+
+    test2 = [1, 2, [3, 3, 5], [6, 7, [8, 8, 9]]]
+    test3 = LogicStatement(logic_array=[
+        "AND", ["AND", 1, 2, ["OR", 3, 4]], ["OR", 5, 6, ["OR", 7, 8]]
+    ])
+    print(test3.simplify_operator())
