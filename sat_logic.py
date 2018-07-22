@@ -206,42 +206,131 @@ class LogicStatement():
             return self.simplify()
 
     def every_true(self, check_var, total_other_variables):
+        counter = 0
         check_array = itertools.product(
-            [True, False],
+            [False, True],
             repeat=total_other_variables)
         setter = list(range(1, total_other_variables + 1))
         good_combos = []
+        temp_set = frozenset()
         for combo in check_array:
-            self_copy_1 = copy.deepcopy(self)
-            for var, value in zip(setter, combo):
-                self_copy_1.set_variable(var, value)
-            self_copy_1.simplify()
-            self_copy_2 = copy.deepcopy(self_copy_1)
-            self_copy_3 = copy.deepcopy(self_copy_1)
-            if (
-                    self_copy_1.contents == frozenset({True})
-                    or (
-                        self_copy_2.set_variable(
-                            check_var, True).simplify(
-                        ).contents == frozenset({True})
-                        and self_copy_3.set_variable(
-                            check_var, False).simplify(
-                        ).contents == frozenset({True}))):
-                good_combos.append(combo)
-            del self_copy_1
-            del self_copy_2
-            del self_copy_3
+            flag = 0
+            counter += 1
+            print(counter)
+            if not all(item is False for item in combo):
+                combo_set = frozenset(
+                    {index + 1 for index in range(len(combo)) if combo[index]})
+                print("combo_set ", combo_set)
+                print("temp_set ", temp_set)
+                for elem_ in temp_set:
+                    if combo_set > elem_:
+                        print("We move on.")
+                        flag = 1
+                if flag:
+                    continue
+                else:
+                    print("Just checking!")
+                    self_copy_1 = copy.copy(self)
+                    for var, value in zip(setter, combo):
+                        self_copy_1.set_variable(var, value)
+                    self_copy_1.simplify()
+                    self_copy_2 = copy.copy(self_copy_1)
+                    self_copy_3 = copy.copy(self_copy_1)
+                    if (
+                            self_copy_1.contents == frozenset({True})
+                            or (
+                                self_copy_2.set_variable(
+                                    check_var, True).simplify(
+                                ).contents == frozenset({True})
+                                and self_copy_3.set_variable(
+                                    check_var, False).simplify(
+                                ).contents == frozenset({True}))):
+                        good_combos.append(combo)
+                        temp_set |= {combo_set}
+                del self_copy_1
+                del self_copy_2
+                del self_copy_3
         final_set = frozenset()
         for combo in good_combos:
             inner_set = frozenset(
                 {index + 1 for index in range(len(combo)) if combo[index]})
             final_set |= {inner_set}
+        start_len = 2
+        max_len = 0
         for set in final_set:
-            for other in final_set:
-                if set < other:
-                    final_set -= frozenset({other})
+            if len(set) > max_len:
+                max_len = len(set)
+        while start_len < max_len:
+            for set in final_set:
+                if len(set) == start_len:
+                    for other in final_set:
+                        if set < other:
+                            final_set -= frozenset({other})
+            start_len += 1
         return final_set
 
 
+def custom_parse(iterable, symbol_set: dict) -> list:
+    final_array = []
+    for set_ in iterable:
+        temp_string = ''
+        for element in set_:
+            temp_string += symbol_set[element]
+            temp_string = "".join(sorted(temp_string))
+        final_array.append(temp_string)
+    return sorted(final_array)
+
+
 if __name__ == "__main__":
+    """
+    test1 = LogicStatement(logic_array=["OR", ["AND", 1, 4], ["AND", 2, -4], 3])
+    print(test1.every_true(4, 3))
+    test2 = LogicStatement(logic_array=[
+        "OR",
+        ["AND",
+            ["OR", ["AND", 1, 10], ["AND", 2, -10], 3],
+            ["OR", ["AND", 4, 10], ["AND", 5, -10], 6]
+         ],
+        ["AND", 7, 10], ["AND", 8, -10], 9
+    ])
+    print(custom_parse(test2.every_true(10, 9), {
+        1: "A",
+        2: "B",
+        3: "C",
+        4: "D",
+        5: "E",
+        6: "F",
+        7: "G",
+        8: "H",
+        9: "I"
+    }))
+    """
+    """
+    test3 = LogicStatement(logic_array=[
+        "OR",
+        ["AND",
+            ["OR", ["AND", 1, 13], ["AND", 2, -13], 3],
+            ["OR", ["AND", 7, 13], ["AND", 8, -13], 9]],
+        ["AND",
+            ["OR", ["AND", 1, 13], ["AND", 2, -13], 3],
+            ["OR", ["AND", 10, 13], ["AND", 11, -13], 12]],
+        ["AND",
+            ["OR", ["AND", 4, 13], ["AND", 5, -13], 6],
+            ["OR", ["AND", 7, 13], ["AND", 8, -13], 9]]
+    ])
+    print(custom_parse(test3.every_true(13, 12), {
+        1: "A",
+        2: "B",
+        3: "C",
+        4: "D",
+        5: "E",
+        6: "F",
+        7: "G",
+        8: "H",
+        9: "I",
+        10: "J",
+        11: "K",
+        12: "L"
+    }))
+    """
     pass
