@@ -3,6 +3,7 @@ import os
 import collections
 from sys import getsizeof
 import itertools
+from functools import total_ordering
 
 
 class Error(Exception):
@@ -58,19 +59,22 @@ def dimacs_parser(dimacs_filepath):
                     clause_num = int(line[3])
         return Parameters(logic_list, var_num, clause_num)
 
-    # raise NotImplementedError
+
+def custom_abs(x):
+    return (abs(x), x < 0)
 
 
+@total_ordering
 class LogicStatement:
 
     def __init__(self, logic_list: list, dimacs_dict: dict = None):
-        self.other_attr = False
         self.operator = logic_list[0]
         self.contents = [
             LogicStatement(element) if isinstance(element, list)
             else element for element in itertools.islice(
                 logic_list, 1, len(logic_list))
         ]
+        self.other_attr = False
         if dimacs_dict is not None:
             for key, value in dimacs_dict.items():
                 setattr(self, key, value)
@@ -79,22 +83,23 @@ class LogicStatement:
     def __repr__(self):
         if self.other_attr:
             return "LogicStatement({}, {})".format(
-                self.display(), self.attr_dict)
+                self.display, self.attr_dict)
         else:
-            return "LogicStatement({})".format(self.display())
+            return "LogicStatement({})".format(self.display)
 
     def __str__(self):
-        return str(self.display())
+        return str(self.display)
 
     def __eq__(self, other):
+        self.sort()
         return (
             (self.operator, self.contents) == (other.operator, other.contents))
 
-    def display(self) -> list:
-        return [self.operator] + [
-            element.display() if isinstance(element, LogicStatement)
-            else element for element in self.contents
-        ]
+    def __lt__(self, other):
+        if self.abs_var_tuple == other.abs_var_tuple:
+            return self.var_tuple > other.var_tuple
+        else:
+            return self.abs_var_tuple < other.abs_var_tuple
 
     @classmethod
     def from_dimacs(cls, dimacs_filepath: str):
@@ -106,12 +111,47 @@ class LogicStatement:
             }
         )
 
+    @property
+    def display(self) -> list:
+        return [self.operator] + [
+            element.display if isinstance(element, LogicStatement)
+            else element for element in self.contents
+        ]
+
+    @property
+    def var_tuple(self) -> tuple:
+        master_set = set()
+        for element in self.contents:
+            if isinstance(element, LogicStatement):
+                master_set.update(element.var_tuple)
+            else:
+                master_set.add(element)
+        return tuple(sorted(master_set, key=custom_abs))
+
+    @property
+    def abs_var_tuple(self) -> tuple:
+        return tuple(sorted({abs(x) for x in self.var_tuple}))
+
+    def sort(self):
+        statements = []
+        variables = []
+        for element in self.contents:
+            if isinstance(element, LogicStatement):
+                element.sort()
+                statements.append(element)
+            else:
+                variables.append(element)
+        statements.sort()
+        variables.sort(key=custom_abs)
+        self.contents = statements + variables
+        return self
+
 
 if __name__ == "__main__":
 
     x = LogicStatement(["AND",
                         ["OR", ["AND", 1, 7], ["AND", 2, -7], 3],
-                        ["OR", ["AND", 4, 7], ["AND", 5, -7], 6]]
+                        ["OR", ["AND", 4, 7], 6, ["AND", 5, -7]]]
                        )
     # print(x)
     # print(repr(x))
@@ -119,4 +159,9 @@ if __name__ == "__main__":
     # print(y)
     # print(repr(y))
     z = dimacs_parser("test_ksat.dimacs")
-    print(z)
+    # print(z)
+    a = LogicStatement.from_dimacs("test_ksat.dimacs")
+    print(a)
+    a.sort()
+    print(a)
+    print(x.sort())

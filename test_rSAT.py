@@ -27,12 +27,12 @@ class TestRSAT(unittest.TestCase):
                         LogicStatement(['OR', 2, 3, -4]),
                         LogicStatement(['OR', 2, 3, 4]),
                         LogicStatement(['OR', 1, -2, -3]),
-                        LogicStatement(['OR', -2, 4, -3]),
+                        LogicStatement(['OR', -2, -3, 4]),
                         LogicStatement(['OR', -1, -4, 5]),
                         LogicStatement(['OR', 1, -2, -5]),
-                        LogicStatement(['OR', -5, -2, 4]),
-                        LogicStatement(['OR', -5, -4, -1]),
-                        LogicStatement(['OR', -3, 4, 2])],
+                        LogicStatement(['OR', -2, 4, -5]),
+                        LogicStatement(['OR', -1, -4, -5]),
+                        LogicStatement(['OR', 2, -3, 4])],
             var_num=5, clause_num=10))
 
     def test_display(self):
@@ -40,10 +40,20 @@ class TestRSAT(unittest.TestCase):
                             ["OR", ["AND", 1, 7], ["AND", 2, -7], 3],
                             ["OR", ["AND", 4, 7], ["AND", 5, -7], 6]]
                            )
-        self.assertEqual(x.display(),
+        self.assertEqual(x.display,
                          ["AND",
                           ["OR", ["AND", 1, 7], ["AND", 2, -7], 3],
                           ["OR", ["AND", 4, 7], ["AND", 5, -7], 6]])
+
+    def test_sort(self):
+        x = LogicStatement(["AND",
+                            ["OR", ["AND", 7, 1], ["AND", 2, -7], 3],
+                            ["OR", ["AND", -4, 4, 7], 6, ["AND", 5, -7]]]
+                           )
+        self.assertEqual(x.sort().display,
+                         ["AND",
+                          ["OR", ["AND", 1, 7], ["AND", 2, -7], 3],
+                          ["OR", ["AND", 4, -4, 7], ["AND", 5, -7], 6]])
 
 
 if __name__ == "__main__":
