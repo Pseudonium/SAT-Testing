@@ -1,5 +1,29 @@
-Current to-do list:
+I want to be able to simply multiply two LogicStatement objects together,
+using the __mul__ or __rmul__ (with ints). __imul__ would be useful as well.
 
-Changes in implementation:
+To do this operation, the simplify module would be used.
+This would implement the bracket multiplication rule:
+(Ax + Bx' + C)(Dx + Ex' + F)
+->
+x(AD + AF + CD)
+x'(BE + BF + CE)
+CF
+However, there are some special cases of the bracket multiplication rule,
+which this module should also be able to implement.
+E.g. (ignoring B and E) if both A and D are true, i.e.:
+(x + C)(x + F)(Rest)
+The expression should become (x + CF)(Rest)
+Ideally, it should check whether it can simplify the expression first.
+E.g. (1 + 2)(3 + 4) should, normally, just output (1 + 2)(3 + 4).
+The only case where you should be able to override this is when you need to
+expand by a certain variable.
+For example, in the above example, if you need to expand by a variable,
+probably 1, it should output 1(3 + 4) + 2(3 + 4) as the answer.
+Debating on whether to have single-variable distribution.
+Bracket multiplication rule is actually the only instance where more terms
+could be added.
+Simplification for OR should be implemented too, probably with an __add__,
+__radd__ and __iadd__ method.
 
-Planned features:
+A separate Solver class in rSAT.py would then manage applying operations,
+to solve the instance.

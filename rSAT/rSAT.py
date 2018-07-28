@@ -93,7 +93,6 @@ class LogicStatement:
             else element for element in itertools.islice(
                 logic_list, 1, len(logic_list))
         ]
-        self.simplifier = Simplify(self)
         if dimacs_dict is not None:
             for key, value in dimacs_dict.items():
                 setattr(self, key, value)
