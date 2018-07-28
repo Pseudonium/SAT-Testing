@@ -115,10 +115,9 @@ class LogicStatement:
         master_set = set()
         for element in self.contents:
             if isinstance(element, LogicStatement):
-                var_set = set(element.var_tuple)
-                master_set |= var_set
+                master_set.update(element.var_tuple)
             else:
-                master_set |= {element}
+                master_set.add(element)
         return tuple(sorted(master_set, key=lambda x: (abs(x), x < 0)))
 
 
