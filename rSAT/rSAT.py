@@ -195,17 +195,8 @@ class LogicStatement:
         return self
 
 
-class Simplify:
-
-    def __init__(self, statement: LogicStatement):
-        self.statement = statement
-
-    def and_rule(self, other, var):
-        pass
-
-
 if __name__ == "__main__":
-    """
+
     x = LogicStatement(
         ["AND",
             ["OR", ["AND", 1, 7], ["AND", 2, -7], 3],
@@ -213,7 +204,7 @@ if __name__ == "__main__":
     )
     # print(x)
     # print(repr(x))
-    y = LogicStatement.from_dimacs("../../SAT-Testing-instances/uf20-01.cnf")
+    #y = LogicStatement.from_dimacs("../../SAT-Testing-instances/uf20-01.cnf")
     # print(y)
     # print(repr(y))
     z = dimacs_parser("test_ksat.dimacs")
@@ -223,5 +214,5 @@ if __name__ == "__main__":
     a.sort()
     # print(a)
     # print(x.sort())
-    """
+
     pass
