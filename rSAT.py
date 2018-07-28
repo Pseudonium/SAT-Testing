@@ -2,6 +2,7 @@ import pdb
 import os
 import collections
 from sys import getsizeof
+import itertools
 
 
 class Error(Exception):
@@ -21,8 +22,10 @@ def cnf_parser(dimacs_line):
     end = line.pop()
     if end != '0\n':
         line.append(end)
-        print("Error line: ", line)
-        raise FormatError("0 must terminate all cnf lines.")
+        #print("Error line: ", line)
+        raise FormatError(
+            """0 must terminate all cnf lines.
+            Error line: """, line)
     for index, element in enumerate(line):
         line[index] = int(element)
     line.insert(0, "OR")
@@ -61,18 +64,20 @@ def dimacs_parser(dimacs_filepath):
 class LogicStatement:
 
     def __init__(self, logic_list: list, dimacs_dict: dict = None):
+        self.other_attr = False
         self.operator = logic_list[0]
         self.contents = [
             LogicStatement(element) if isinstance(element, list)
-            else element for element in logic_list[1:]
+            else element for element in itertools.islice(
+                logic_list, 1, len(logic_list))
         ]
         if dimacs_dict is not None:
             for key, value in dimacs_dict.items():
                 setattr(self, key, value)
-            self.attr_dict = dimacs_dict
+            self.other_attr = True
 
     def __repr__(self):
-        if hasattr(self, 'attr_dict'):
+        if self.other_attr:
             return "LogicStatement({}, {})".format(
                 self.display(), self.attr_dict)
         else:
@@ -85,7 +90,7 @@ class LogicStatement:
         return (
             (self.operator, self.contents) == (other.operator, other.contents))
 
-    def display(self):
+    def display(self) -> list:
         return [self.operator] + [
             element.display() if isinstance(element, LogicStatement)
             else element for element in self.contents
