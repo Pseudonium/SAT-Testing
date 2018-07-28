@@ -40,11 +40,13 @@ def dimacs_parser(dimacs_filepath: str) -> collections.namedtuple:
     try:
         f = open(dimacs_filepath)
     except IOError:
-        raise IOError("File {} corrupted or not found.".format(
-            dimacs_filepath))
+        raise IOError(
+            "File {} corrupted or not found.".format(dimacs_filepath)
+        )
     else:
         Parameters = collections.namedtuple(
-            'Parameters', ['logic_list', 'var_num', 'clause_num'])
+            'Parameters', ['logic_list', 'var_num', 'clause_num']
+        )
         with f:
             logic_list = ["AND"]
             cnf_reached = False
@@ -91,6 +93,7 @@ class LogicStatement:
             else element for element in itertools.islice(
                 logic_list, 1, len(logic_list))
         ]
+        self.simplifier = Simplify(self)
         if dimacs_dict is not None:
             for key, value in dimacs_dict.items():
                 setattr(self, key, value)
@@ -189,12 +192,22 @@ class LogicStatement:
         return self
 
 
+class Simplify:
+
+    def __init__(self, statement: LogicStatement):
+        self.statement = statement
+
+    def and_rule(self, other, var):
+        pass
+
+
 if __name__ == "__main__":
     """
-    x = LogicStatement(["AND",
-                        ["OR", ["AND", 1, 7], ["AND", 2, -7], 3],
-                        ["OR", ["AND", 4, 7], 6, ["AND", 5, -7]]]
-                       )
+    x = LogicStatement(
+        ["AND",
+            ["OR", ["AND", 1, 7], ["AND", 2, -7], 3],
+            ["OR", ["AND", 4, 7], 6, ["AND", 5, -7]]]
+    )
     # print(x)
     # print(repr(x))
     y = LogicStatement.from_dimacs("../rSAT-instances/uf20-01.cnf")

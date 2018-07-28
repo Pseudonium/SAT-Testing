@@ -18,41 +18,55 @@ class TestRSAT(unittest.TestCase):
     def test_dimacs_parser(self):
         self.assertRaises(IOError, rSAT.dimacs_parser, "dummy")
         Parameters = collections.namedtuple(
-            'Parameters', ['logic_list', 'var_num', 'clause_num'])
-        self.assertEqual(rSAT.dimacs_parser("test_ksat.dimacs"),
-                         Parameters(
-            logic_list=['AND',
-                        LogicStatement(['OR', -1, -3, 5]),
-                        LogicStatement(['OR', 2, 3, -4]),
-                        LogicStatement(['OR', 2, 3, 4]),
-                        LogicStatement(['OR', 1, -2, -3]),
-                        LogicStatement(['OR', -2, -3, 4]),
-                        LogicStatement(['OR', -1, -4, 5]),
-                        LogicStatement(['OR', 1, -2, -5]),
-                        LogicStatement(['OR', -2, 4, -5]),
-                        LogicStatement(['OR', -1, -4, -5]),
-                        LogicStatement(['OR', 2, -3, 4])],
-            var_num=5, clause_num=10))
+            'Parameters', ['logic_list', 'var_num', 'clause_num']
+        )
+        self.assertEqual(
+            rSAT.dimacs_parser("test_ksat.dimacs"),
+            Parameters(
+                logic_list=['AND',
+                            LogicStatement(['OR', -1, -3, 5]),
+                            LogicStatement(['OR', 2, 3, -4]),
+                            LogicStatement(['OR', 2, 3, 4]),
+                            LogicStatement(['OR', 1, -2, -3]),
+                            LogicStatement(['OR', -2, -3, 4]),
+                            LogicStatement(['OR', -1, -4, 5]),
+                            LogicStatement(['OR', 1, -2, -5]),
+                            LogicStatement(['OR', -2, 4, -5]),
+                            LogicStatement(['OR', -1, -4, -5]),
+                            LogicStatement(['OR', 2, -3, 4])],
+                var_num=5, clause_num=10
+            )
+        )
 
     def test_display(self):
-        x = LogicStatement(["AND",
-                            ["OR", ["AND", 1, 7], ["AND", 2, -7], 3],
-                            ["OR", ["AND", 4, 7], ["AND", 5, -7], 6]]
-                           )
-        self.assertEqual(x.display,
-                         ["AND",
-                          ["OR", ["AND", 1, 7], ["AND", 2, -7], 3],
-                          ["OR", ["AND", 4, 7], ["AND", 5, -7], 6]])
+        x = LogicStatement(
+            ["AND",
+                ["OR", ["AND", 1, 7], ["AND", 2, -7], 3],
+                ["OR", ["AND", 4, 7], ["AND", 5, -7], 6]
+             ]
+        )
+        self.assertEqual(
+            x.display,
+            ["AND",
+                ["OR", ["AND", 1, 7], ["AND", 2, -7], 3],
+                ["OR", ["AND", 4, 7], ["AND", 5, -7], 6]
+             ]
+        )
 
     def test_sort(self):
-        x = LogicStatement(["AND",
-                            ["OR", ["AND", 7, 1], ["AND", 2, -7], 3],
-                            ["OR", ["AND", -4, 4, 7], 6, ["AND", 5, -7]]]
-                           )
-        self.assertEqual(x.sort().display,
-                         ["AND",
-                          ["OR", ["AND", 1, 7], ["AND", 2, -7], 3],
-                          ["OR", ["AND", 4, -4, 7], ["AND", 5, -7], 6]])
+        x = LogicStatement(
+            ["AND",
+                ["OR", ["AND", 7, 1], ["AND", 2, -7], 3],
+                ["OR", ["AND", -4, 4, 7], 6, ["AND", 5, -7]]
+             ]
+        )
+        self.assertEqual(
+            x.sort().display,
+            ["AND",
+                ["OR", ["AND", 1, 7], ["AND", 2, -7], 3],
+                ["OR", ["AND", 4, -4, 7], ["AND", 5, -7], 6]
+             ]
+        )
 
 
 if __name__ == "__main__":
