@@ -60,6 +60,10 @@ def dimacs_parser(dimacs_filepath):
         return Parameters(logic_list, var_num, clause_num)
 
 
+def custom_abs(x):
+    return (abs(x), x < 0)
+
+
 @total_ordering
 class LogicStatement:
 
@@ -87,11 +91,15 @@ class LogicStatement:
         return str(self.display)
 
     def __eq__(self, other):
+        self.sort()
         return (
             (self.operator, self.contents) == (other.operator, other.contents))
 
     def __lt__(self, other):
-        return self.var_tuple < other.var_tuple
+        if self.abs_var_tuple == other.abs_var_tuple:
+            return self.var_tuple > other.var_tuple
+        else:
+            return self.abs_var_tuple < other.abs_var_tuple
 
     @classmethod
     def from_dimacs(cls, dimacs_filepath: str):
@@ -118,14 +126,32 @@ class LogicStatement:
                 master_set.update(element.var_tuple)
             else:
                 master_set.add(element)
-        return tuple(sorted(master_set, key=lambda x: (abs(x), x < 0)))
+        return tuple(sorted(master_set, key=custom_abs))
+
+    @property
+    def abs_var_tuple(self) -> tuple:
+        return tuple(sorted({abs(x) for x in self.var_tuple}))
+
+    def sort(self):
+        statements = []
+        variables = []
+        for element in self.contents:
+            if isinstance(element, LogicStatement):
+                element.sort()
+                statements.append(element)
+            else:
+                variables.append(element)
+        statements.sort()
+        variables.sort(key=custom_abs)
+        self.contents = statements + variables
+        return self
 
 
 if __name__ == "__main__":
 
     x = LogicStatement(["AND",
                         ["OR", ["AND", 1, 7], ["AND", 2, -7], 3],
-                        ["OR", ["AND", 4, 7], ["AND", 5, -7], 6]]
+                        ["OR", ["AND", 4, 7], 6, ["AND", 5, -7]]]
                        )
     # print(x)
     # print(repr(x))
@@ -133,5 +159,9 @@ if __name__ == "__main__":
     # print(y)
     # print(repr(y))
     z = dimacs_parser("test_ksat.dimacs")
-    print(z)
-    print(x.contents[0] > x.contents[1])
+    # print(z)
+    a = LogicStatement.from_dimacs("test_ksat.dimacs")
+    print(a)
+    a.sort()
+    print(a)
+    print(x.sort())
