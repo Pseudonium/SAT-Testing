@@ -3,6 +3,7 @@ import os
 import collections
 from sys import getsizeof
 import itertools
+from functools import total_ordering
 
 
 class Error(Exception):
@@ -58,19 +59,18 @@ def dimacs_parser(dimacs_filepath):
                     clause_num = int(line[3])
         return Parameters(logic_list, var_num, clause_num)
 
-    # raise NotImplementedError
 
-
+@total_ordering
 class LogicStatement:
 
     def __init__(self, logic_list: list, dimacs_dict: dict = None):
-        self.other_attr = False
         self.operator = logic_list[0]
         self.contents = [
             LogicStatement(element) if isinstance(element, list)
             else element for element in itertools.islice(
                 logic_list, 1, len(logic_list))
         ]
+        self.other_attr = False
         if dimacs_dict is not None:
             for key, value in dimacs_dict.items():
                 setattr(self, key, value)
@@ -90,11 +90,8 @@ class LogicStatement:
         return (
             (self.operator, self.contents) == (other.operator, other.contents))
 
-    def display(self) -> list:
-        return [self.operator] + [
-            element.display() if isinstance(element, LogicStatement)
-            else element for element in self.contents
-        ]
+    def __lt__(self, other):
+        return self.var_tuple < other.var_tuple
 
     @classmethod
     def from_dimacs(cls, dimacs_filepath: str):
@@ -105,6 +102,23 @@ class LogicStatement:
                 'clause_num': parsed_file.clause_num
             }
         )
+
+    def display(self) -> list:
+        return [self.operator] + [
+            element.display() if isinstance(element, LogicStatement)
+            else element for element in self.contents
+        ]
+
+    @property
+    def var_tuple(self) -> tuple:
+        master_set = set()
+        for element in self.contents:
+            if isinstance(element, LogicStatement):
+                var_set = set(element.var_tuple)
+                master_set |= var_set
+            else:
+                master_set |= {element}
+        return tuple(sorted(master_set, key=lambda x: (abs(x), x < 0)))
 
 
 if __name__ == "__main__":
@@ -120,3 +134,4 @@ if __name__ == "__main__":
     # print(repr(y))
     z = dimacs_parser("test_ksat.dimacs")
     print(z)
+    print(x.contents[0] > x.contents[1])
