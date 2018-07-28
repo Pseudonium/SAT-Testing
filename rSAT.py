@@ -119,6 +119,7 @@ class LogicStatement:
 
     @classmethod
     def from_dimacs(cls, dimacs_filepath: str):
+        """Construct LogicStatement object from a dimacs file."""
         parsed_file = dimacs_parser(dimacs_filepath)
         return cls(
             parsed_file.logic_list, {
@@ -129,6 +130,10 @@ class LogicStatement:
 
     @property
     def display(self) -> list:
+        """Get a display of the LogicStatement object.
+
+        Used for __str__ and comparisons in unittests.
+        """
         return [self.operator] + [
             element.display if isinstance(element, LogicStatement)
             else element for element in self.contents
@@ -136,19 +141,40 @@ class LogicStatement:
 
     @property
     def var_tuple(self) -> tuple:
-        master_set = set()
+        """Get a tuple of all variables in the LogicStatement.
+
+        They are sorted by their absolute value,
+        with positives before negatives.
+        """
+        var_set = set()
         for element in self.contents:
             if isinstance(element, LogicStatement):
-                master_set.update(element.var_tuple)
+                var_set.update(element.var_tuple)
             else:
-                master_set.add(element)
-        return tuple(sorted(master_set, key=custom_abs))
+                var_set.add(element)
+        return tuple(sorted(var_set, key=custom_abs))
 
     @property
     def abs_var_tuple(self) -> tuple:
+        """Get all variables in the LogicStatement, ignoring negations.
+
+        Used for sorting, as LogicStatements containing smaller variables
+        are considered smaller than those that contain larger variables.
+        """
         return tuple(sorted({abs(x) for x in self.var_tuple}))
 
     def sort(self):
+        """Sort a LogicStatement object.
+
+        Used so that display comparisons remain consistent,
+        even if LogicStatement is changed to a different order.
+
+        Statements are chosen arbitrarily to be smaller than variables,
+        so that the format is:
+
+        [operator, Statement, Statement, Statement, ...,
+         variable, ..., variable]
+        """
         statements = []
         variables = []
         for element in self.contents:
@@ -164,7 +190,7 @@ class LogicStatement:
 
 
 if __name__ == "__main__":
-
+    """
     x = LogicStatement(["AND",
                         ["OR", ["AND", 1, 7], ["AND", 2, -7], 3],
                         ["OR", ["AND", 4, 7], 6, ["AND", 5, -7]]]
@@ -181,3 +207,5 @@ if __name__ == "__main__":
     a.sort()
     # print(a)
     # print(x.sort())
+    """
+    pass
