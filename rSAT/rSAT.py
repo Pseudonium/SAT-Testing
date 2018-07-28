@@ -120,6 +120,9 @@ class LogicStatement:
         else:
             return self.abs_var_tuple < other.abs_var_tuple
 
+    def __iter__(self):
+        return iter(self.contents)
+
     @classmethod
     def from_dimacs(cls, dimacs_filepath: str):
         """Construct LogicStatement object from a dimacs file."""
@@ -139,7 +142,7 @@ class LogicStatement:
         """
         return [self.operator] + [
             element.display if isinstance(element, LogicStatement)
-            else element for element in self.contents
+            else element for element in self
         ]
 
     @property
@@ -150,7 +153,7 @@ class LogicStatement:
         with positives before negatives.
         """
         var_set = set()
-        for element in self.contents:
+        for element in self:
             if isinstance(element, LogicStatement):
                 var_set.update(element.var_tuple)
             else:
@@ -180,7 +183,7 @@ class LogicStatement:
         """
         statements = []
         variables = []
-        for element in self.contents:
+        for element in self:
             if isinstance(element, LogicStatement):
                 element.sort()
                 statements.append(element)
@@ -210,7 +213,7 @@ if __name__ == "__main__":
     )
     # print(x)
     # print(repr(x))
-    y = LogicStatement.from_dimacs("../rSAT-instances/uf20-01.cnf")
+    y = LogicStatement.from_dimacs("../../SAT-Testing-instances/uf20-01.cnf")
     # print(y)
     # print(repr(y))
     z = dimacs_parser("test_ksat.dimacs")
