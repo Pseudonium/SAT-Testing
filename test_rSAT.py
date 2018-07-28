@@ -2,7 +2,6 @@ import unittest
 import rSAT
 from rSAT import LogicStatement
 import collections
-import os
 
 
 class TestRSAT(unittest.TestCase):

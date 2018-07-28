@@ -1,5 +1,4 @@
 import pdb
-import os
 import collections
 from sys import getsizeof
 import itertools
@@ -14,14 +13,16 @@ class FormatError(Error):
     pass
 
 
-def cnf_parser(dimacs_line):
+def cnf_parser(dimacs_line: str) -> list:
+    """Parse a single line in dimacs format."""
     line = dimacs_line
     line = line.split(" ")
+    # Removes accidental whitespace
     while '' in line:
         line.remove('')
-    # 0 is always at the end of the line, so we remove it
+    # 0 is always at the end of the line, so remove it
     end = line.pop()
-    if end != '0\n':
+    if int(end) != 0:
         line.append(end)
         #print("Error line: ", line)
         raise FormatError(
@@ -29,15 +30,18 @@ def cnf_parser(dimacs_line):
             Error line: """, line)
     for index, element in enumerate(line):
         line[index] = int(element)
+    # Make line a formal logic_list
     line.insert(0, "OR")
     return line
 
 
-def dimacs_parser(dimacs_filepath):
+def dimacs_parser(dimacs_filepath: str) -> collections.namedtuple:
+    """Parse a file in dimacs format."""
     try:
         f = open(dimacs_filepath)
     except IOError:
-        raise IOError("File either corrupted or not found.")
+        raise IOError("File {} corrupted or not found.".format(
+            dimacs_filepath))
     else:
         Parameters = collections.namedtuple(
             'Parameters', ['logic_list', 'var_num', 'clause_num'])
@@ -46,6 +50,7 @@ def dimacs_parser(dimacs_filepath):
             cnf_reached = False
             for line in f:
                 if cnf_reached:
+                    # Some formats have a % at the end of the file.
                     if line[0] == "%":
                         break
                     line = cnf_parser(line)
@@ -60,7 +65,8 @@ def dimacs_parser(dimacs_filepath):
         return Parameters(logic_list, var_num, clause_num)
 
 
-def custom_abs(x):
+def custom_abs(x: int) -> tuple:
+    """Return a comparison tuple using abs; positives take precedence."""
     return (abs(x), x < 0)
 
 
@@ -68,20 +74,30 @@ def custom_abs(x):
 class LogicStatement:
 
     def __init__(self, logic_list: list, dimacs_dict: dict = None):
+        """
+        Create a new LogicStatement object.
+
+        Positional arguments:
+            logic_list --- Representation of the statement.
+            Format is [operator, *sub_statements/variables]
+
+        Optional arguments:
+            dimacs_dict -- Info from the dimacs file used to create it.
+            Contains the number of variables and the number of clauses.
+        """
         self.operator = logic_list[0]
         self.contents = [
             LogicStatement(element) if isinstance(element, list)
             else element for element in itertools.islice(
                 logic_list, 1, len(logic_list))
         ]
-        self.other_attr = False
         if dimacs_dict is not None:
             for key, value in dimacs_dict.items():
                 setattr(self, key, value)
-            self.other_attr = True
+            self.attr_dict = dimacs_dict
 
     def __repr__(self):
-        if self.other_attr:
+        if hasattr(self, 'attr_dict'):
             return "LogicStatement({}, {})".format(
                 self.display, self.attr_dict)
         else:
@@ -103,6 +119,7 @@ class LogicStatement:
 
     @classmethod
     def from_dimacs(cls, dimacs_filepath: str):
+        """Construct LogicStatement object from a dimacs file."""
         parsed_file = dimacs_parser(dimacs_filepath)
         return cls(
             parsed_file.logic_list, {
@@ -113,6 +130,10 @@ class LogicStatement:
 
     @property
     def display(self) -> list:
+        """Get a display of the LogicStatement object.
+
+        Used for __str__ and comparisons in unittests.
+        """
         return [self.operator] + [
             element.display if isinstance(element, LogicStatement)
             else element for element in self.contents
@@ -120,19 +141,40 @@ class LogicStatement:
 
     @property
     def var_tuple(self) -> tuple:
-        master_set = set()
+        """Get a tuple of all variables in the LogicStatement.
+
+        They are sorted by their absolute value,
+        with positives before negatives.
+        """
+        var_set = set()
         for element in self.contents:
             if isinstance(element, LogicStatement):
-                master_set.update(element.var_tuple)
+                var_set.update(element.var_tuple)
             else:
-                master_set.add(element)
-        return tuple(sorted(master_set, key=custom_abs))
+                var_set.add(element)
+        return tuple(sorted(var_set, key=custom_abs))
 
     @property
     def abs_var_tuple(self) -> tuple:
+        """Get all variables in the LogicStatement, ignoring negations.
+
+        Used for sorting, as LogicStatements containing smaller variables
+        are considered smaller than those that contain larger variables.
+        """
         return tuple(sorted({abs(x) for x in self.var_tuple}))
 
     def sort(self):
+        """Sort a LogicStatement object.
+
+        Used so that display comparisons remain consistent,
+        even if LogicStatement is changed to a different order.
+
+        Statements are chosen arbitrarily to be smaller than variables,
+        so that the format is:
+
+        [operator, Statement, Statement, Statement, ...,
+         variable, ..., variable]
+        """
         statements = []
         variables = []
         for element in self.contents:
@@ -148,7 +190,7 @@ class LogicStatement:
 
 
 if __name__ == "__main__":
-
+    """
     x = LogicStatement(["AND",
                         ["OR", ["AND", 1, 7], ["AND", 2, -7], 3],
                         ["OR", ["AND", 4, 7], 6, ["AND", 5, -7]]]
@@ -161,7 +203,9 @@ if __name__ == "__main__":
     z = dimacs_parser("test_ksat.dimacs")
     # print(z)
     a = LogicStatement.from_dimacs("test_ksat.dimacs")
-    print(a)
+    # print(a)
     a.sort()
-    print(a)
-    print(x.sort())
+    # print(a)
+    # print(x.sort())
+    """
+    pass
