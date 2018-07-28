@@ -1,6 +1,7 @@
 import pdb
 import os
 import collections
+from sys import getsizeof
 
 
 class Error(Exception):
@@ -22,7 +23,8 @@ def cnf_parser(dimacs_line):
         line.append(end)
         print("Error line: ", line)
         raise FormatError("0 must terminate all cnf lines.")
-    line = [int(element) for element in line[:]]
+    for index, element in enumerate(line):
+        line[index] = int(element)
     line.insert(0, "OR")
     return line
 
@@ -49,8 +51,8 @@ def dimacs_parser(dimacs_filepath):
                     line = line.split(" ")
                     while '' in line:
                         line.remove('')
-                    var_num = line[2]
-                    clause_num = line[3]
+                    var_num = int(line[2])
+                    clause_num = int(line[3])
         return Parameters(logic_list, var_num, clause_num)
 
     # raise NotImplementedError
@@ -79,6 +81,10 @@ class LogicStatement:
     def __str__(self):
         return str(self.display())
 
+    def __eq__(self, other):
+        return (
+            (self.operator, self.contents) == (other.operator, other.contents))
+
     def display(self):
         return [self.operator] + [
             element.display() if isinstance(element, LogicStatement)
@@ -102,8 +108,10 @@ if __name__ == "__main__":
                         ["OR", ["AND", 1, 7], ["AND", 2, -7], 3],
                         ["OR", ["AND", 4, 7], ["AND", 5, -7], 6]]
                        )
-    print(x)
-    print(repr(x))
+    # print(x)
+    # print(repr(x))
     y = LogicStatement.from_dimacs("../rSAT-instances/uf20-01.cnf")
-    print(y)
-    print(repr(y))
+    # print(y)
+    # print(repr(y))
+    z = dimacs_parser("test_ksat.dimacs")
+    print(z)
