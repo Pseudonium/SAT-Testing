@@ -40,7 +40,7 @@ class TestRSAT(unittest.TestCase):
                             ["OR", ["AND", 1, 7], ["AND", 2, -7], 3],
                             ["OR", ["AND", 4, 7], ["AND", 5, -7], 6]]
                            )
-        self.assertEqual(x.display(),
+        self.assertEqual(x.display,
                          ["AND",
                           ["OR", ["AND", 1, 7], ["AND", 2, -7], 3],
                           ["OR", ["AND", 4, 7], ["AND", 5, -7], 6]])

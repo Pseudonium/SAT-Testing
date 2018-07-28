@@ -79,12 +79,12 @@ class LogicStatement:
     def __repr__(self):
         if self.other_attr:
             return "LogicStatement({}, {})".format(
-                self.display(), self.attr_dict)
+                self.display, self.attr_dict)
         else:
-            return "LogicStatement({})".format(self.display())
+            return "LogicStatement({})".format(self.display)
 
     def __str__(self):
-        return str(self.display())
+        return str(self.display)
 
     def __eq__(self, other):
         return (
@@ -103,9 +103,10 @@ class LogicStatement:
             }
         )
 
+    @property
     def display(self) -> list:
         return [self.operator] + [
-            element.display() if isinstance(element, LogicStatement)
+            element.display if isinstance(element, LogicStatement)
             else element for element in self.contents
         ]
 
