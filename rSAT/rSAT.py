@@ -2,7 +2,8 @@ import pdb
 import collections
 from sys import getsizeof
 import itertools
-from functools import total_ordering
+import functools
+import operator
 
 
 class Error(Exception):
@@ -24,7 +25,7 @@ def cnf_parser(dimacs_line: str) -> list:
     end = line.pop()
     if int(end) != 0:
         line.append(end)
-        #print("Error line: ", line)
+        # print("Error line: ", line)
         raise FormatError(
             """0 must terminate all cnf lines.
             Error line: """, line)
@@ -72,7 +73,7 @@ def custom_abs(x: int) -> tuple:
     return (abs(x), x < 0)
 
 
-@total_ordering
+@functools.total_ordering
 class LogicStatement:
 
     def __init__(self, logic_list: list, dimacs_dict: dict = None):
@@ -100,10 +101,11 @@ class LogicStatement:
 
     def __repr__(self):
         if hasattr(self, 'attr_dict'):
-            return "LogicStatement({}, {})".format(
+            return "{}({}, {})".format(
+                type(self).__name__,
                 self.display, self.attr_dict)
         else:
-            return "LogicStatement({})".format(self.display)
+            return "{}({})".format(type(self).__name__, self.display)
 
     def __str__(self):
         return str(self.display)
@@ -200,6 +202,14 @@ class LogicLiteral(LogicStatement):
         self.var = var_num
         self.operator = None
 
+    def __str__(self):
+        return str(self.var)
+
+    def __mul__(self, other):
+        if isinstance(other, LogicLiteral):
+            return LogicStatement(["AND", self.var, other.var])
+        return NotImplemented
+
     @property
     def display(self):
         return self.var
@@ -223,18 +233,17 @@ if __name__ == "__main__":
             ["OR", ["AND", 1, 7], ["AND", 2, -7], 3],
             ["OR", ["AND", 4, 7], 6, ["AND", 5, -7]]]
     )
-    # print(repr(x))
-    #y = LogicStatement.from_dimacs("../../SAT-Testing-instances/uf20-01.cnf")
+    # print(x)
+    # y = LogicStatement.from_dimacs("../../SAT-Testing-instances/uf20-01.cnf")
     # print(y)
     # print(repr(y))
     z = dimacs_parser("test_ksat.dimacs")
     # print(z)
     # pdb.set_trace()
     a = LogicStatement.from_dimacs("test_ksat.dimacs")
-    print(a)
+    # print(a)
     # pdb.set_trace()
-    a.sort()
-    print(a)
+    # a.sort()
+    # print(a)
     # print(x.sort())
-
     pass
