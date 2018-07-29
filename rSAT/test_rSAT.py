@@ -24,16 +24,17 @@ class TestRSAT(unittest.TestCase):
             rSAT.dimacs_parser("test_ksat.dimacs"),
             Parameters(
                 logic_list=['AND',
-                            LogicStatement(['OR', -1, -3, 5]),
-                            LogicStatement(['OR', 2, 3, -4]),
-                            LogicStatement(['OR', 2, 3, 4]),
-                            LogicStatement(['OR', 1, -2, -3]),
-                            LogicStatement(['OR', -2, -3, 4]),
-                            LogicStatement(['OR', -1, -4, 5]),
-                            LogicStatement(['OR', 1, -2, -5]),
-                            LogicStatement(['OR', -2, 4, -5]),
-                            LogicStatement(['OR', -1, -4, -5]),
-                            LogicStatement(['OR', 2, -3, 4])],
+                            ['OR', -1, -3, 5],
+                            ['OR', 2, 3, -4],
+                            ['OR', 2, 3, 4],
+                            ['OR', 1, -2, -3],
+                            ['OR', -2, 4, -3],
+                            ['OR', -1, -4, 5],
+                            ['OR', 1, -2, -5],
+                            ['OR', -5, -2, 4],
+                            ['OR', -5, -4, -1],
+                            ['OR', -3, 4, 2]
+                            ],
                 var_num=5, clause_num=10
             )
         )
