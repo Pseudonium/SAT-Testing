@@ -194,6 +194,12 @@ class LogicStatement:
         return self
 
 
+class LogicLiteral(LogicStatement):
+    def __init__(self, var_num):
+        self.contents = [var_num]
+        self.operator = None
+
+
 if __name__ == "__main__":
 
     x = LogicStatement(
