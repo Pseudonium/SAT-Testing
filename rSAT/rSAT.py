@@ -90,7 +90,7 @@ class LogicStatement:
         self.operator = logic_list[0]
         self.contents = [
             LogicStatement(element) if isinstance(element, list)
-            else element for element in itertools.islice(
+            else LogicLiteral(element) for element in itertools.islice(
                 logic_list, 1, len(logic_list))
         ]
         if dimacs_dict is not None:
@@ -199,6 +199,10 @@ class LogicLiteral(LogicStatement):
         self.contents = [var_num]
         self.operator = None
 
+    @property
+    def display(self):
+        return self.contents[0]
+
 
 if __name__ == "__main__":
 
@@ -207,7 +211,7 @@ if __name__ == "__main__":
             ["OR", ["AND", 1, 7], ["AND", 2, -7], 3],
             ["OR", ["AND", 4, 7], 6, ["AND", 5, -7]]]
     )
-    # print(x)
+    print(x)
     # print(repr(x))
     #y = LogicStatement.from_dimacs("../../SAT-Testing-instances/uf20-01.cnf")
     # print(y)
