@@ -56,7 +56,7 @@ def dimacs_parser(dimacs_filepath: str) -> collections.namedtuple:
                     if line[0] == "%":
                         break
                     line = cnf_parser(line)
-                    logic_list.append(LogicStatement(line))
+                    logic_list.append(line)
                 elif line[0] == "p":
                     cnf_reached = True
                     line = line.split(" ")
@@ -197,11 +197,23 @@ class LogicStatement:
 class LogicLiteral(LogicStatement):
     def __init__(self, var_num):
         self.contents = [var_num]
+        self.var = var_num
         self.operator = None
 
     @property
     def display(self):
-        return self.contents[0]
+        return self.var
+
+    @property
+    def var_tuple(self):
+        return self.var,
+
+    @property
+    def abs_var_tuple(self):
+        return abs(self.var),
+
+    def sort(self):
+        return self
 
 
 if __name__ == "__main__":
@@ -211,17 +223,18 @@ if __name__ == "__main__":
             ["OR", ["AND", 1, 7], ["AND", 2, -7], 3],
             ["OR", ["AND", 4, 7], 6, ["AND", 5, -7]]]
     )
-    print(x)
     # print(repr(x))
     #y = LogicStatement.from_dimacs("../../SAT-Testing-instances/uf20-01.cnf")
     # print(y)
     # print(repr(y))
     z = dimacs_parser("test_ksat.dimacs")
     # print(z)
+    # pdb.set_trace()
     a = LogicStatement.from_dimacs("test_ksat.dimacs")
-    # print(a)
+    print(a)
+    # pdb.set_trace()
     a.sort()
-    # print(a)
+    print(a)
     # print(x.sort())
 
     pass
