@@ -210,6 +210,11 @@ class LogicLiteral(LogicStatement):
             return LogicStatement(["AND", self.var, other.var])
         return NotImplemented
 
+    def __add__(self, other):
+        if isinstance(other, LogicLiteral):
+            return LogicStatement(["OR", self.var, other.var])
+        return NotImplemented
+
     @property
     def display(self):
         return self.var
