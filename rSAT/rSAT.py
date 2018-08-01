@@ -133,6 +133,9 @@ class LogicStatement:
     def __iter__(self):
         return iter(self.contents)
 
+    def __contains__(self, item):
+        return item in self.abs_var_tuple
+
     @classmethod
     def from_dimacs(cls, dimacs_filepath: str):
         """Construct LogicStatement object from a dimacs file."""
@@ -247,9 +250,33 @@ class LogicStatement:
             if isinstance(element, LogicStatement):
                 element.simplify_singleton()
         if len(self.contents) < 2:
-            self.parent.contents.extend(self)
-            self.parent.contents.remove(self)
+            try:
+                self.parent.contents.extend(self)
+                self.parent.contents.remove(self)
+            except AttributeError:
+                pass
         return self
+
+    def simplify_operator(self):
+        for element in self:
+            if isinstance(element, LogicStatement):
+                element.simplify_operator()
+        try:
+            if self.operator == self.parent.operator:
+                self.parent.contents.extend(self)
+                self.parent.contents.remove(self)
+        except AttributeError:
+            pass
+        return self
+
+    def simplify(self):
+        while True:
+            old_self = copy.copy(self)
+            self.simplify_bool().simplify_singleton().simplify_operator()
+            if old_self == self:
+                return self
+            else:
+                continue
 
 
 class LogicLiteral(LogicStatement):
@@ -305,6 +332,12 @@ class LogicLiteral(LogicStatement):
     def simplify_bool(self):
         return self
 
+    def simplify_singleton(self):
+        return self
+
+    def simplify_operator(self):
+        return self
+
 
 if __name__ == "__main__":
 
@@ -314,10 +347,8 @@ if __name__ == "__main__":
             ["OR", ["AND", 4, 7], 6, ["AND", 5, -7]]]
     )
     print(x)
-    print(x.set_variable(7, True))
-    print(x.simplify_bool())
-    print(x.simplify_singleton())
-    print(x.sort())
+    print(7 in x)
+    # pdb.set_trace()
     # y = LogicStatement.from_dimacs("../../SAT-Testing-instances/uf20-01.cnf")
     # print(y)
     # print(repr(y))
