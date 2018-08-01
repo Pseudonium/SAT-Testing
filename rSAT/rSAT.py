@@ -4,6 +4,7 @@ from sys import getsizeof
 import itertools
 import functools
 import operator
+import copy
 
 
 class Error(Exception):
@@ -76,7 +77,8 @@ def custom_abs(x: int) -> tuple:
 @functools.total_ordering
 class LogicStatement:
 
-    def __init__(self, logic_list: list, dimacs_dict: dict = None):
+    def __init__(
+            self, logic_list: list, dimacs_dict: dict = None, parent=None):
         """
         Create a new LogicStatement object.
 
@@ -90,14 +92,16 @@ class LogicStatement:
         """
         self.operator = logic_list[0]
         self.contents = [
-            LogicStatement(element) if isinstance(element, list)
-            else LogicLiteral(element) for element in itertools.islice(
+            LogicStatement(element, parent=self) if isinstance(element, list)
+            else LogicLiteral(element, self) for element in itertools.islice(
                 logic_list, 1, len(logic_list))
         ]
-        if dimacs_dict is not None:
+        if dimacs_dict:
             for key, value in dimacs_dict.items():
                 setattr(self, key, value)
             self.attr_dict = dimacs_dict
+        if parent:
+            self.parent = parent
 
     def __repr__(self):
         if hasattr(self, 'attr_dict'):
@@ -111,6 +115,11 @@ class LogicStatement:
         return str(self.display)
 
     def __eq__(self, other):
+        if not (
+            isinstance(self, LogicStatement)
+            and isinstance(other, LogicStatement)
+        ):
+            return False
         self.sort()
         return (
             (self.operator, self.contents) == (other.operator, other.contents))
@@ -195,12 +204,54 @@ class LogicStatement:
         self.contents = statements + variables
         return self
 
+    def negate(self):
+        if self.operator == "AND":
+            self.operator = "OR"
+        elif self.operator == "OR":
+            self.operator = "AND"
+        new_contents = [element.negate() for element in self]
+        self.contents = new_contents
+        return self
+
+    def set_variable(self, var_num, value):
+        new_contents = [
+            element.set_variable(var_num, value) for element in self
+        ]
+        self.contents = new_contents
+        return self
+
+    def simplify_bool(self):
+        while True:
+            old_self = copy.copy(self)
+            if self.operator == "OR" and any(
+                element is True for element in self
+            ):
+                return True
+            elif self.operator == "AND" and any(
+                element is False for element in self
+            ):
+                return False
+            else:
+                new_contents = [
+                    element.simplify_bool() for element in self
+                    if not isinstance(element, bool)
+                ]
+                self.contents = new_contents
+                if old_self == self:
+                    return self
+                else:
+                    continue
+
+    def simplify_singleton(self):
+        while True:
+            old
+
 
 class LogicLiteral(LogicStatement):
-    def __init__(self, var_num):
-        self.contents = [var_num]
+    def __init__(self, var_num, parent):
         self.var = var_num
         self.operator = None
+        self.parent = parent
 
     def __str__(self):
         return str(self.var)
@@ -214,6 +265,10 @@ class LogicLiteral(LogicStatement):
         if isinstance(other, LogicLiteral):
             return LogicStatement(["OR", self.var, other.var])
         return NotImplemented
+
+    @property
+    def contents(self):
+        return [self.var]
 
     @property
     def display(self):
@@ -230,6 +285,21 @@ class LogicLiteral(LogicStatement):
     def sort(self):
         return self
 
+    def negate(self):
+        self.var *= -1
+        return self
+
+    def set_variable(self, var_num, value):
+        if self.var == var_num:
+            return value
+        elif self.var == -1 * var_num:
+            return not value
+        else:
+            return self
+
+    def simplify_bool(self):
+        return self
+
 
 if __name__ == "__main__":
 
@@ -238,7 +308,10 @@ if __name__ == "__main__":
             ["OR", ["AND", 1, 7], ["AND", 2, -7], 3],
             ["OR", ["AND", 4, 7], 6, ["AND", 5, -7]]]
     )
-    # print(x)
+    print(x)
+    print(x.set_variable(7, True))
+    print(x.simplify_bool())
+
     # y = LogicStatement.from_dimacs("../../SAT-Testing-instances/uf20-01.cnf")
     # print(y)
     # print(repr(y))
