@@ -115,14 +115,13 @@ class LogicStatement:
         return str(self.display)
 
     def __eq__(self, other):
-        if not (
-            isinstance(self, LogicStatement)
-            and isinstance(other, LogicStatement)
-        ):
+        try:
+            self.sort()
+            other.sort()
+            return (
+                (self.operator, self.contents) == (other.operator, other.contents))
+        except AttributeError:
             return False
-        self.sort()
-        return (
-            (self.operator, self.contents) == (other.operator, other.contents))
 
     def __lt__(self, other):
         if self.abs_var_tuple == other.abs_var_tuple:
