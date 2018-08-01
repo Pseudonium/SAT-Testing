@@ -119,7 +119,8 @@ class LogicStatement:
             self.sort()
             other.sort()
             return (
-                (self.operator, self.contents) == (other.operator, other.contents))
+                (self.operator, self.contents) ==
+                (other.operator, other.contents))
         except AttributeError:
             return False
 
@@ -242,8 +243,13 @@ class LogicStatement:
                     continue
 
     def simplify_singleton(self):
-        while True:
-            old
+        for element in self:
+            if isinstance(element, LogicStatement):
+                element.simplify_singleton()
+        if len(self.contents) < 2:
+            self.parent.contents.extend(self)
+            self.parent.contents.remove(self)
+        return self
 
 
 class LogicLiteral(LogicStatement):
@@ -310,7 +316,8 @@ if __name__ == "__main__":
     print(x)
     print(x.set_variable(7, True))
     print(x.simplify_bool())
-
+    print(x.simplify_singleton())
+    print(x.sort())
     # y = LogicStatement.from_dimacs("../../SAT-Testing-instances/uf20-01.cnf")
     # print(y)
     # print(repr(y))
