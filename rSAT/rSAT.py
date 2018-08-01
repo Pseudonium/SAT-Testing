@@ -194,17 +194,18 @@ class LogicStatement:
         [operator, Statement, Statement, Statement, ...,
          variable, ..., variable]
         """
+        new_contents = [element.sort() for element in self].sort()
         statements = []
-        variables = []
+        bools = []
         for element in self:
             if isinstance(element, LogicStatement):
                 element.sort()
                 statements.append(element)
             else:
-                variables.append(element)
+                bools.append(element)
         statements.sort()
-        variables.sort(key=custom_abs)
-        self.contents = statements + variables
+        bools.sort(key=custom_abs)
+        self.contents = statements + bools
         return self
 
     def negate(self):
@@ -347,7 +348,8 @@ if __name__ == "__main__":
             ["OR", ["AND", 4, 7], 6, ["AND", 5, -7]]]
     )
     print(x)
-    print(7 in x)
+    print(x.set_variable(7, True))
+    print(x.simplify())
     # pdb.set_trace()
     # y = LogicStatement.from_dimacs("../../SAT-Testing-instances/uf20-01.cnf")
     # print(y)
